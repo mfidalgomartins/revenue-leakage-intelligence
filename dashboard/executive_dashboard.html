@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revenue Leakage Intelligence — Executive Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+:root {
+    --bg: #f3f6fb;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f6f9ff;
+    --border: #d9e2ee;
+    --text: #142033;
+    --text-muted: #5f6f84;
+    --text-dim: #77879c;
+    --blue: #2f79cf;
+    --blue-light: #5e9be0;
+    --red: #cb3a2d;
+    --red-light: #df6a61;
+    --green: #178a59;
+    --green-light: #29a874;
+    --amber: #c37b1f;
+    --amber-light: #da973f;
+    --purple: #7658cc;
+    --teal: #178e9f;
+    --font: "Segoe UI", "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+    --radius: 12px;
+    --shadow: 0 8px 24px rgba(20, 32, 51, 0.08);
+}
+
+[data-theme="dark"] {
+    --bg: #0F172A;
+    --bg-card: #1E293B;
+    --bg-card-hover: #263548;
+    --border: #334155;
+    --text: #F1F5F9;
+    --text-muted: #94A3B8;
+    --text-dim: #64748B;
+    --blue: #3B82F6;
+    --blue-light: #60A5FA;
+    --red: #EF4444;
+    --red-light: #F87171;
+    --green: #10B981;
+    --green-light: #34D399;
+    --amber: #F59E0B;
+    --amber-light: #FBBF24;
+    --purple: #8B5CF6;
+    --teal: #06B6D4;
+    --shadow: 0 6px 24px rgba(0,0,0,0.35);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: var(--font);
+    background: radial-gradient(1200px 700px at 25% -20%, rgba(73, 126, 191, 0.16), transparent 60%), var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 100vh;
+}
+
+/* ── Header ───────────────────────────────── */
+.header {
+    background: linear-gradient(135deg, #1E3A5F 0%, #0F172A 50%, #1a1a2e 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 28px 40px 24px;
+}
+.header-inner {
+    max-width: 1440px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+.header h1 {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, var(--blue-light), var(--teal));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.header .subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    max-width: 930px;
+}
+.theme-toggle {
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: rgba(255,255,255,0.1);
+    color: var(--text);
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.theme-toggle:hover {
+    background: var(--bg-card-hover);
+}
+
+/* ── Container ────────────────────────────── */
+.container {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 24px 40px 60px;
+}
+
+/* ── Filters ──────────────────────────────── */
+.filter-bar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+    padding: 14px 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+.filter-bar label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.filter-bar select {
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 7px 32px 7px 12px;
+    font-size: 13px;
+    font-family: var(--font);
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    transition: border-color 0.2s;
+}
+.filter-bar select:hover { border-color: var(--blue); }
+.filter-bar select:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
+.filter-reset {
+    margin-left: auto;
+    padding: 7px 16px;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.filter-reset:hover { background: var(--bg-card-hover); color: var(--text); border-color: var(--text-dim); }
+
+/* ── KPI Cards ────────────────────────────── */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.kpi-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+.kpi-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.kpi-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+}
+.kpi-card.accent-red::before    { background: var(--red); }
+.kpi-card.accent-amber::before  { background: var(--amber); }
+.kpi-card.accent-blue::before   { background: var(--blue); }
+.kpi-card.accent-green::before  { background: var(--green); }
+
+.kpi-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+.kpi-value {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    line-height: 1.1;
+}
+.kpi-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 6px;
+}
+.kpi-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-top: 8px;
+}
+.kpi-trend.negative { background: rgba(239,68,68,0.12); color: var(--red-light); }
+.kpi-trend.positive { background: rgba(16,185,129,0.12); color: var(--green-light); }
+
+/* ── Chart Panels ─────────────────────────── */
+.chart-row {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+.chart-row.cols-2 { grid-template-columns: 1fr 1fr; }
+.chart-row.cols-3 { grid-template-columns: 2fr 1fr 1fr; }
+.chart-row.cols-1 { grid-template-columns: 1fr; }
+
+.chart-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+}
+.chart-panel h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+.chart-panel .chart-subtitle {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+}
+.chart-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+/* ── Table ─────────────────────────────────── */
+.table-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-top: 16px;
+    overflow-x: auto;
+}
+.table-panel h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+.table-panel .table-subtitle {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+}
+.table-panel .table-info {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+thead th {
+    position: sticky;
+    top: 0;
+    background: var(--bg-card);
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+thead th:hover { color: var(--blue-light); }
+thead th .sort-arrow { margin-left: 4px; opacity: 0.4; }
+thead th.sorted .sort-arrow { opacity: 1; }
+
+tbody td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(51,65,85,0.5);
+    white-space: nowrap;
+}
+tbody tr { transition: background 0.15s; }
+tbody tr:hover { background: var(--bg-card-hover); }
+
+.badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.badge-critical { background: rgba(239,68,68,0.15); color: var(--red-light); }
+.badge-high     { background: rgba(245,158,11,0.15); color: var(--amber-light); }
+.badge-medium   { background: rgba(59,130,246,0.15); color: var(--blue-light); }
+.badge-low      { background: rgba(16,185,129,0.15); color: var(--green-light); }
+
+.risk-bar {
+    display: inline-block;
+    height: 6px;
+    border-radius: 3px;
+    vertical-align: middle;
+    margin-right: 6px;
+}
+
+/* ── Footer ───────────────────────────────── */
+.footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 12px;
+    color: var(--text-dim);
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+}
+
+/* ── Responsive ───────────────────────────── */
+@media (max-width: 1200px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .chart-row.cols-2 { grid-template-columns: 1fr; }
+    .chart-row.cols-3 { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+    .container { padding: 16px; }
+    .header { padding: 20px 16px; }
+    .kpi-grid { grid-template-columns: 1fr; }
+    .kpi-value { font-size: 26px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+    <div class="header-inner">
+        <div>
+            <h1>Revenue Leakage Intelligence</h1>
+            <div class="subtitle">Executive Dashboard &mdash; Monitoring revenue erosion, risk concentration, and intervention priorities</div>
+        </div>
+        <button id="themeToggle" class="theme-toggle" type="button" onclick="toggleTheme()">Dark Mode</button>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Filters -->
+    <div class="filter-bar">
+        <label>Segment</label>
+        <select id="fSegment" onchange="applyFilters()">
+            <option value="">All Segments</option>
+            <option value="Enterprise">Enterprise</option><option value="Mid-Market">Mid-Market</option><option value="SMB">SMB</option>
+        </select>
+        <label>Region</label>
+        <select id="fRegion" onchange="applyFilters()">
+            <option value="">All Regions</option>
+            <option value="APAC">APAC</option><option value="Europe">Europe</option><option value="LATAM">LATAM</option><option value="North America">North America</option>
+        </select>
+        <label>Risk Tier</label>
+        <select id="fTier" onchange="applyFilters()">
+            <option value="">All Tiers</option>
+            <option value="Critical">Critical</option><option value="High">High</option><option value="Medium">Medium</option><option value="Low">Low</option>
+        </select>
+        <button class="filter-reset" onclick="resetFilters()">Reset</button>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+        <div class="kpi-card accent-red">
+            <div class="kpi-label">Total Revenue Leakage</div>
+            <div class="kpi-value" id="kpiLeakage"></div>
+            <div class="kpi-sub" id="kpiLeakageSub"></div>
+            <div class="kpi-trend negative" id="kpiLeakageTrend"></div>
+        </div>
+        <div class="kpi-card accent-amber">
+            <div class="kpi-label">Revenue at Risk</div>
+            <div class="kpi-value" id="kpiAtRisk"></div>
+            <div class="kpi-sub" id="kpiAtRiskSub"></div>
+        </div>
+        <div class="kpi-card accent-blue">
+            <div class="kpi-label">High-Risk Accounts</div>
+            <div class="kpi-value" id="kpiHighRisk"></div>
+            <div class="kpi-sub" id="kpiHighRiskSub"></div>
+        </div>
+        <div class="kpi-card accent-green">
+            <div class="kpi-label">Avg Collection Rate</div>
+            <div class="kpi-value" id="kpiCollection"></div>
+            <div class="kpi-trend" id="kpiCollTrend"></div>
+        </div>
+    </div>
+
+    <!-- Row 1: Revenue Trend (full width) -->
+    <div class="chart-row cols-1">
+        <div class="chart-panel">
+            <h3>Monthly Revenue: Contracted vs Collected</h3>
+            <div class="chart-subtitle">The persistent gap between contracted and collected revenue reveals systematic leakage</div>
+            <div class="chart-wrapper" style="height: 300px;">
+                <canvas id="chartRevenue"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 2: Risk Drivers + Tier Breakdown -->
+    <div class="chart-row cols-2">
+        <div class="chart-panel">
+            <h3>Risk Driver Comparison by Segment</h3>
+            <div class="chart-subtitle">Which leakage channels hit hardest across customer tiers</div>
+            <div class="chart-wrapper" style="height: 280px;">
+                <canvas id="chartDrivers"></canvas>
+            </div>
+        </div>
+        <div class="chart-panel">
+            <h3>Portfolio Risk Distribution</h3>
+            <div class="chart-subtitle">Customer count and revenue at risk by tier</div>
+            <div class="chart-wrapper" style="height: 280px;">
+                <canvas id="chartTiers"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 3: Segment Leakage Trend + Segment Summary -->
+    <div class="chart-row cols-2">
+        <div class="chart-panel">
+            <h3>Leakage Gap by Segment Over Time</h3>
+            <div class="chart-subtitle">Monthly contracted-minus-collected gap by customer segment</div>
+            <div class="chart-wrapper" style="height: 280px;">
+                <canvas id="chartSegTrend"></canvas>
+            </div>
+        </div>
+        <div class="chart-panel">
+            <h3>Segment Risk Summary</h3>
+            <div class="chart-subtitle">Revenue concentration vs risk intensity</div>
+            <div class="chart-wrapper" style="height: 280px;">
+                <canvas id="chartSegSummary"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Table -->
+    <div class="table-panel">
+        <h3>High-Risk Accounts — Prioritized Intervention List</h3>
+        <div class="table-subtitle">Top 100 accounts by composite risk score — click column headers to sort</div>
+        <div class="table-info" id="tableInfo"></div>
+        <div style="max-height: 500px; overflow-y: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th data-col="id">Customer <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="segment">Segment <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="region">Region <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="acv" data-type="num">ACV <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="score" data-type="num">Risk Score <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="tier">Tier <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="at_risk" data-type="num">At Risk <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="churn" data-type="num">Churn <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="deterioration" data-type="num">Deter. <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="discount" data-type="num">Disc. <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="payment" data-type="num">Payment <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="engagement" data-type="num">Engage. <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="collection" data-type="num">Coll. % <span class="sort-arrow">&#9650;</span></th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="footer">
+    Revenue Leakage Intelligence
+</div>
+
+<script>
+// ── Embedded Data ──────────────────────────────────────────────────────
+const D = {"kpis": {"total_leakage": 6030816.0, "leakage_rate": 18.2, "leakage_trend": 1.1, "total_at_risk": 4167541.0, "at_risk_pct": 21.7, "high_risk_count": 48, "avg_collection": 86.2, "coll_trend": -1.5, "total_customers": 500, "total_arr": 19187544}, "monthly_trend": [{"month": "2024-01", "contracted": 1589141.0, "billed": 1518075.0, "collected": 1277017.0, "leakage": 312124.0}, {"month": "2024-02", "contracted": 1631032.0, "billed": 1559209.0, "collected": 1325941.0, "leakage": 305092.0}, {"month": "2024-03", "contracted": 1619635.0, "billed": 1537936.0, "collected": 1340829.0, "leakage": 278806.0}, {"month": "2024-04", "contracted": 1619270.0, "billed": 1543303.0, "collected": 1315104.0, "leakage": 304166.0}, {"month": "2024-05", "contracted": 1599415.0, "billed": 1525535.0, "collected": 1381798.0, "leakage": 217617.0}, {"month": "2024-06", "contracted": 1571432.0, "billed": 1496489.0, "collected": 1279366.0, "leakage": 292066.0}, {"month": "2024-07", "contracted": 1544157.0, "billed": 1460284.0, "collected": 1242251.0, "leakage": 301906.0}, {"month": "2024-08", "contracted": 1515918.0, "billed": 1446382.0, "collected": 1195944.0, "leakage": 319974.0}, {"month": "2024-09", "contracted": 1502300.0, "billed": 1430799.0, "collected": 1220390.0, "leakage": 281911.0}, {"month": "2024-10", "contracted": 1357280.0, "billed": 1297142.0, "collected": 1117023.0, "leakage": 240257.0}, {"month": "2024-11", "contracted": 1349606.0, "billed": 1292123.0, "collected": 1112476.0, "leakage": 237130.0}, {"month": "2024-12", "contracted": 1353854.0, "billed": 1286520.0, "collected": 1050424.0, "leakage": 303430.0}, {"month": "2025-01", "contracted": 1378708.0, "billed": 1313598.0, "collected": 1166416.0, "leakage": 212292.0}, {"month": "2025-02", "contracted": 1338809.0, "billed": 1287443.0, "collected": 1099846.0, "leakage": 238963.0}, {"month": "2025-03", "contracted": 1332050.0, "billed": 1272916.0, "collected": 1114018.0, "leakage": 218032.0}, {"month": "2025-04", "contracted": 1319389.0, "billed": 1271478.0, "collected": 1065578.0, "leakage": 253811.0}, {"month": "2025-05", "contracted": 1288002.0, "billed": 1226419.0, "collected": 1061258.0, "leakage": 226744.0}, {"month": "2025-06", "contracted": 1258051.0, "billed": 1196344.0, "collected": 1076405.0, "leakage": 181647.0}, {"month": "2025-07", "contracted": 1232146.0, "billed": 1171076.0, "collected": 1003487.0, "leakage": 228659.0}, {"month": "2025-08", "contracted": 1179523.0, "billed": 1129975.0, "collected": 998639.0, "leakage": 180884.0}, {"month": "2025-09", "contracted": 1150544.0, "billed": 1093723.0, "collected": 873644.0, "leakage": 276900.0}, {"month": "2025-10", "contracted": 1129516.0, "billed": 1080304.0, "collected": 925175.0, "leakage": 204342.0}, {"month": "2025-11", "contracted": 1111625.0, "billed": 1064007.0, "collected": 880697.0, "leakage": 230928.0}, {"month": "2025-12", "contracted": 1104858.0, "billed": 1065030.0, "collected": 921719.0, "leakage": 183139.0}], "segment_leakage_trend": {"Enterprise": {"months": ["2024-01", "2024-02", "2024-03", "2024-04", "2024-05", "2024-06", "2024-07", "2024-08", "2024-09", "2024-10", "2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12"], "gaps": [202237.0, 168140.0, 159645.0, 190704.0, 98759.0, 178257.0, 172954.0, 181456.0, 164245.0, 142740.0, 151476.0, 182626.0, 120075.0, 145384.0, 146003.0, 148889.0, 132449.0, 88417.0, 148408.0, 95791.0, 177448.0, 135629.0, 148301.0, 117343.0]}, "Mid-Market": {"months": ["2024-01", "2024-02", "2024-03", "2024-04", "2024-05", "2024-06", "2024-07", "2024-08", "2024-09", "2024-10", "2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12"], "gaps": [75195.0, 105134.0, 87400.0, 83204.0, 84532.0, 78615.0, 95825.0, 103399.0, 90307.0, 70430.0, 57791.0, 94679.0, 64476.0, 68441.0, 45846.0, 79434.0, 66014.0, 70699.0, 58882.0, 67688.0, 76896.0, 49256.0, 61990.0, 44319.0]}, "SMB": {"months": ["2024-01", "2024-02", "2024-03", "2024-04", "2024-05", "2024-06", "2024-07", "2024-08", "2024-09", "2024-10", "2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12"], "gaps": [34692.0, 31818.0, 31762.0, 30258.0, 34326.0, 35193.0, 33127.0, 35118.0, 27359.0, 27087.0, 27863.0, 26125.0, 27741.0, 25138.0, 26183.0, 25487.0, 28282.0, 22531.0, 21369.0, 17404.0, 22557.0, 19457.0, 20637.0, 21477.0]}}, "risk_drivers": [{"segment": "Enterprise", "churn": 11.1, "deterioration": 22.0, "discount": 12.4, "payment": 40.0}, {"segment": "Mid-Market", "churn": 14.4, "deterioration": 23.8, "discount": 15.4, "payment": 39.7}, {"segment": "SMB", "churn": 11.6, "deterioration": 21.9, "discount": 15.1, "payment": 38.4}], "tier_breakdown": [{"tier": "Critical", "count": 1, "total_arr": 8571, "total_risk": 5391.0, "avg_score": 62.9}, {"tier": "High", "count": 47, "total_arr": 1637061, "total_risk": 781341.0, "avg_score": 46.1}, {"tier": "Medium", "count": 185, "total_arr": 7450411, "total_risk": 2122471.0, "avg_score": 29.4}, {"tier": "Low", "count": 267, "total_arr": 10091501, "total_risk": 1258338.0, "avg_score": 12.6}], "segment_summary": [{"segment": "Enterprise", "count": 89, "total_arr": 11450580, "total_risk": 2392762.0, "avg_score": 21.3, "risk_intensity": 0.96}, {"segment": "Mid-Market", "count": 152, "total_arr": 5579298, "total_risk": 1310689.0, "avg_score": 23.3, "risk_intensity": 1.08}, {"segment": "SMB", "count": 259, "total_arr": 2157666, "total_risk": 464090.0, "avg_score": 21.6, "risk_intensity": 0.99}], "accounts": [{"id": "CUST-0093", "company": "Company_93", "segment": "SMB", "region": "North America", "industry": "Professional Services", "acv": 8571, "score": 62.9, "tier": "Critical", "at_risk": 5391, "churn": 78.8, "deterioration": 55.0, "discount": 11.9, "payment": 92.6, "engagement": 22.8, "collection": 68.7}, {"id": "CUST-0134", "company": "Company_134", "segment": "Mid-Market", "region": "North America", "industry": "Media", "acv": 37692, "score": 59.1, "tier": "High", "at_risk": 22276, "churn": 60.6, "deterioration": 62.6, "discount": 24.4, "payment": 81.4, "engagement": 18.5, "collection": 74.3}, {"id": "CUST-0417", "company": "Company_417", "segment": "Mid-Market", "region": "APAC", "industry": "Technology", "acv": 53785, "score": 57.7, "tier": "High", "at_risk": 31034, "churn": 86.7, "deterioration": 51.1, "discount": 16.2, "payment": 62.8, "engagement": 17.1, "collection": 78.6}, {"id": "CUST-0378", "company": "Company_378", "segment": "Enterprise", "region": "Europe", "industry": "Retail", "acv": 117598, "score": 55.8, "tier": "High", "at_risk": 65620, "churn": 60.4, "deterioration": 51.3, "discount": 19.4, "payment": 83.8, "engagement": 20.5, "collection": 73.1}, {"id": "CUST-0393", "company": "Company_393", "segment": "Mid-Market", "region": "Europe", "industry": "Professional Services", "acv": 44895, "score": 55.6, "tier": "High", "at_risk": 24962, "churn": 75.9, "deterioration": 54.9, "discount": 13.8, "payment": 65.2, "engagement": 13.3, "collection": 77.4}, {"id": "CUST-0228", "company": "Company_228", "segment": "Mid-Market", "region": "North America", "industry": "Professional Services", "acv": 30266, "score": 55.1, "tier": "High", "at_risk": 16677, "churn": 52.9, "deterioration": 58.5, "discount": 14.4, "payment": 87.0, "engagement": 15.2, "collection": 71.5}, {"id": "CUST-0500", "company": "Company_500", "segment": "SMB", "region": "Europe", "industry": "Media", "acv": 7606, "score": 52.2, "tier": "High", "at_risk": 3970, "churn": 49.0, "deterioration": 51.3, "discount": 10.6, "payment": 90.2, "engagement": 15.0, "collection": 74.9}, {"id": "CUST-0214", "company": "Company_214", "segment": "Mid-Market", "region": "North America", "industry": "Education", "acv": 36566, "score": 51.9, "tier": "High", "at_risk": 18978, "churn": 74.1, "deterioration": 45.8, "discount": 13.8, "payment": 61.8, "engagement": 17.8, "collection": 79.1}, {"id": "CUST-0409", "company": "Company_409", "segment": "SMB", "region": "APAC", "industry": "Media", "acv": 7849, "score": 50.3, "tier": "High", "at_risk": 3948, "churn": 54.6, "deterioration": 55.2, "discount": 11.9, "payment": 71.0, "engagement": 12.9, "collection": 74.5}, {"id": "CUST-0268", "company": "Company_268", "segment": "SMB", "region": "Europe", "industry": "Manufacturing", "acv": 7397, "score": 49.9, "tier": "High", "at_risk": 3691, "churn": 71.3, "deterioration": 46.3, "discount": 7.5, "payment": 61.6, "engagement": 16.0, "collection": 79.2}, {"id": "CUST-0461", "company": "Company_461", "segment": "Enterprise", "region": "Europe", "industry": "Retail", "acv": 154460, "score": 49.8, "tier": "High", "at_risk": 76921, "churn": 71.9, "deterioration": 51.9, "discount": 10.6, "payment": 52.4, "engagement": 13.1, "collection": 83.8}, {"id": "CUST-0149", "company": "Company_149", "segment": "Enterprise", "region": "North America", "industry": "Financial Services", "acv": 128608, "score": 49.3, "tier": "High", "at_risk": 63404, "churn": 29.6, "deterioration": 56.1, "discount": 8.1, "payment": 99.2, "engagement": 12.3, "collection": 70.4}, {"id": "CUST-0368", "company": "Company_368", "segment": "SMB", "region": "APAC", "industry": "Education", "acv": 5685, "score": 49.1, "tier": "High", "at_risk": 2791, "churn": 50.1, "deterioration": 55.2, "discount": 1.2, "payment": 80.2, "engagement": 10.6, "collection": 79.9}, {"id": "CUST-0060", "company": "Company_60", "segment": "Mid-Market", "region": "North America", "industry": "Manufacturing", "acv": 46908, "score": 48.2, "tier": "High", "at_risk": 22610, "churn": 86.4, "deterioration": 50.3, "discount": 11.2, "payment": 29.8, "engagement": 16.3, "collection": 90.1}, {"id": "CUST-0017", "company": "Company_17", "segment": "Mid-Market", "region": "APAC", "industry": "Healthcare", "acv": 39230, "score": 48.2, "tier": "High", "at_risk": 18909, "churn": 60.7, "deterioration": 49.7, "discount": 17.5, "payment": 56.4, "engagement": 15.5, "collection": 81.8}, {"id": "CUST-0133", "company": "Company_133", "segment": "Enterprise", "region": "North America", "industry": "Education", "acv": 178668, "score": 48.1, "tier": "High", "at_risk": 85939, "churn": 52.0, "deterioration": 52.6, "discount": 19.4, "payment": 62.0, "engagement": 17.2, "collection": 79.0}, {"id": "CUST-0195", "company": "Company_195", "segment": "Mid-Market", "region": "North America", "industry": "Healthcare", "acv": 34341, "score": 48.0, "tier": "High", "at_risk": 16484, "churn": 58.5, "deterioration": 57.9, "discount": 17.5, "payment": 49.8, "engagement": 47.3, "collection": 80.1}, {"id": "CUST-0132", "company": "Company_132", "segment": "Mid-Market", "region": "Europe", "industry": "Healthcare", "acv": 32638, "score": 47.8, "tier": "High", "at_risk": 15601, "churn": 100.0, "deterioration": 0.0, "discount": 15.0, "payment": 59.0, "engagement": 8.6, "collection": 80.5}, {"id": "CUST-0160", "company": "Company_160", "segment": "SMB", "region": "North America", "industry": "Manufacturing", "acv": 5497, "score": 46.3, "tier": "High", "at_risk": 2545, "churn": 31.1, "deterioration": 51.9, "discount": 6.2, "payment": 91.0, "engagement": 53.1, "collection": 69.5}, {"id": "CUST-0492", "company": "Company_492", "segment": "SMB", "region": "APAC", "industry": "Media", "acv": 12766, "score": 46.3, "tier": "High", "at_risk": 5911, "churn": 20.4, "deterioration": 52.8, "discount": 10.0, "payment": 100.0, "engagement": 20.9, "collection": 73.1}, {"id": "CUST-0124", "company": "Company_124", "segment": "Enterprise", "region": "Europe", "industry": "Media", "acv": 70506, "score": 46.3, "tier": "High", "at_risk": 32644, "churn": 31.0, "deterioration": 44.7, "discount": 13.8, "payment": 92.4, "engagement": 11.4, "collection": 68.8}, {"id": "CUST-0114", "company": "Company_114", "segment": "SMB", "region": "Europe", "industry": "Media", "acv": 7171, "score": 46.1, "tier": "High", "at_risk": 3306, "churn": 54.3, "deterioration": 58.0, "discount": 7.5, "payment": 55.2, "engagement": 8.2, "collection": 82.4}, {"id": "CUST-0108", "company": "Company_108", "segment": "SMB", "region": "Europe", "industry": "Education", "acv": 4863, "score": 46.1, "tier": "High", "at_risk": 2242, "churn": 44.8, "deterioration": 56.6, "discount": 13.1, "payment": 63.6, "engagement": 13.9, "collection": 78.2}, {"id": "CUST-0404", "company": "Company_404", "segment": "SMB", "region": "Europe", "industry": "Education", "acv": 6894, "score": 46.0, "tier": "High", "at_risk": 3171, "churn": 59.4, "deterioration": 49.3, "discount": 18.1, "payment": 48.8, "engagement": 13.4, "collection": 85.6}, {"id": "CUST-0421", "company": "Company_421", "segment": "SMB", "region": "Europe", "industry": "Technology", "acv": 7175, "score": 45.9, "tier": "High", "at_risk": 3293, "churn": 99.2, "deterioration": 0.0, "discount": 7.8, "payment": 58.2, "engagement": 5.9, "collection": 80.9}, {"id": "CUST-0398", "company": "Company_398", "segment": "Mid-Market", "region": "Europe", "industry": "Media", "acv": 44418, "score": 45.0, "tier": "High", "at_risk": 19988, "churn": 51.5, "deterioration": 47.0, "discount": 20.0, "payment": 55.0, "engagement": 14.4, "collection": 82.5}, {"id": "CUST-0152", "company": "Company_152", "segment": "Mid-Market", "region": "North America", "industry": "Retail", "acv": 44464, "score": 44.1, "tier": "High", "at_risk": 19609, "churn": 77.9, "deterioration": 56.2, "discount": 24.4, "payment": 7.2, "engagement": 15.5, "collection": 96.4}, {"id": "CUST-0046", "company": "Company_46", "segment": "SMB", "region": "APAC", "industry": "Financial Services", "acv": 10883, "score": 44.1, "tier": "High", "at_risk": 4799, "churn": 63.4, "deterioration": 49.8, "discount": 27.5, "payment": 28.6, "engagement": 20.6, "collection": 90.7}, {"id": "CUST-0083", "company": "Company_83", "segment": "Mid-Market", "region": "North America", "industry": "Retail", "acv": 46712, "score": 43.5, "tier": "High", "at_risk": 20320, "churn": 82.9, "deterioration": 45.8, "discount": 15.6, "payment": 16.4, "engagement": 13.1, "collection": 96.8}, {"id": "CUST-0326", "company": "Company_326", "segment": "SMB", "region": "Europe", "industry": "Technology", "acv": 8693, "score": 43.4, "tier": "High", "at_risk": 3773, "churn": 86.7, "deterioration": 7.8, "discount": 13.8, "payment": 50.6, "engagement": 11.0, "collection": 84.7}, {"id": "CUST-0338", "company": "Company_338", "segment": "SMB", "region": "North America", "industry": "Education", "acv": 10935, "score": 43.3, "tier": "High", "at_risk": 4735, "churn": 59.9, "deterioration": 55.2, "discount": 21.2, "payment": 29.2, "engagement": 8.1, "collection": 90.4}, {"id": "CUST-0208", "company": "Company_208", "segment": "SMB", "region": "North America", "industry": "Education", "acv": 3447, "score": 43.2, "tier": "High", "at_risk": 1489, "churn": 36.5, "deterioration": 58.0, "discount": 20.6, "payment": 54.6, "engagement": 13.2, "collection": 82.7}, {"id": "CUST-0299", "company": "Company_299", "segment": "SMB", "region": "APAC", "industry": "Retail", "acv": 6271, "score": 43.1, "tier": "High", "at_risk": 2703, "churn": 28.2, "deterioration": 50.5, "discount": 21.2, "payment": 71.2, "engagement": 20.3, "collection": 74.4}, {"id": "CUST-0136", "company": "Company_136", "segment": "Mid-Market", "region": "North America", "industry": "Financial Services", "acv": 38777, "score": 42.1, "tier": "High", "at_risk": 16325, "churn": 25.6, "deterioration": 65.2, "discount": 13.8, "payment": 61.4, "engagement": 19.7, "collection": 79.3}, {"id": "CUST-0321", "company": "Company_321", "segment": "SMB", "region": "North America", "industry": "Professional Services", "acv": 6065, "score": 42.0, "tier": "High", "at_risk": 2547, "churn": 28.8, "deterioration": 48.2, "discount": 15.6, "payment": 72.8, "engagement": 12.7, "collection": 78.6}, {"id": "CUST-0489", "company": "Company_489", "segment": "SMB", "region": "LATAM", "industry": "Technology", "acv": 9460, "score": 41.7, "tier": "High", "at_risk": 3945, "churn": 57.8, "deterioration": 55.6, "discount": 16.2, "payment": 29.0, "engagement": 11.1, "collection": 90.5}, {"id": "CUST-0352", "company": "Company_352", "segment": "SMB", "region": "LATAM", "industry": "Professional Services", "acv": 8972, "score": 41.3, "tier": "High", "at_risk": 3705, "churn": 36.9, "deterioration": 53.9, "discount": 25.0, "payment": 47.2, "engagement": 7.8, "collection": 86.4}, {"id": "CUST-0423", "company": "Company_423", "segment": "Enterprise", "region": "Europe", "industry": "Financial Services", "acv": 91715, "score": 41.3, "tier": "High", "at_risk": 37878, "churn": 100.0, "deterioration": 0.0, "discount": 13.0, "payment": 34.8, "engagement": 10.6, "collection": 92.6}, {"id": "CUST-0088", "company": "Company_88", "segment": "SMB", "region": "North America", "industry": "Professional Services", "acv": 7840, "score": 41.0, "tier": "High", "at_risk": 3214, "churn": 59.8, "deterioration": 50.0, "discount": 6.2, "payment": 37.2, "engagement": 10.0, "collection": 86.4}, {"id": "CUST-0018", "company": "Company_18", "segment": "SMB", "region": "APAC", "industry": "Financial Services", "acv": 4167, "score": 41.0, "tier": "High", "at_risk": 1708, "churn": 0.0, "deterioration": 59.4, "discount": 13.8, "payment": 93.4, "engagement": 73.6, "collection": 73.3}, {"id": "CUST-0376", "company": "Company_376", "segment": "Mid-Market", "region": "Europe", "industry": "Retail", "acv": 34828, "score": 40.9, "tier": "High", "at_risk": 14245, "churn": 0.0, "deterioration": 60.8, "discount": 34.4, "payment": 75.2, "engagement": 72.4, "collection": 77.4}, {"id": "CUST-0292", "company": "Company_292", "segment": "Enterprise", "region": "APAC", "industry": "Retail", "acv": 87904, "score": 40.9, "tier": "High", "at_risk": 35953, "churn": 59.8, "deterioration": 56.1, "discount": 23.8, "payment": 16.6, "engagement": 17.8, "collection": 91.7}, {"id": "CUST-0478", "company": "Company_478", "segment": "SMB", "region": "North America", "industry": "Professional Services", "acv": 12568, "score": 40.9, "tier": "High", "at_risk": 5140, "churn": 38.0, "deterioration": 55.1, "discount": 15.6, "payment": 50.6, "engagement": 10.0, "collection": 84.7}, {"id": "CUST-0229", "company": "Company_229", "segment": "SMB", "region": "Europe", "industry": "Education", "acv": 10972, "score": 40.8, "tier": "High", "at_risk": 4477, "churn": 100.0, "deterioration": 0.0, "discount": 19.6, "payment": 27.6, "engagement": 6.4, "collection": 91.2}, {"id": "CUST-0314", "company": "Company_314", "segment": "SMB", "region": "Europe", "industry": "Retail", "acv": 9485, "score": 40.7, "tier": "High", "at_risk": 3860, "churn": 29.0, "deterioration": 54.2, "discount": 8.1, "payment": 67.4, "engagement": 22.9, "collection": 76.3}, {"id": "CUST-0424", "company": "Company_424", "segment": "Mid-Market", "region": "North America", "industry": "Media", "acv": 26471, "score": 40.4, "tier": "High", "at_risk": 10694, "churn": 68.4, "deterioration": 56.7, "discount": 18.8, "payment": 7.8, "engagement": 8.9, "collection": 96.1}, {"id": "CUST-0085", "company": "Company_85", "segment": "Mid-Market", "region": "Europe", "industry": "Education", "acv": 27689, "score": 40.4, "tier": "High", "at_risk": 11186, "churn": 19.1, "deterioration": 60.2, "discount": 19.4, "payment": 63.0, "engagement": 18.6, "collection": 78.5}, {"id": "CUST-0256", "company": "Company_256", "segment": "SMB", "region": "Europe", "industry": "Healthcare", "acv": 5261, "score": 40.3, "tier": "High", "at_risk": 2120, "churn": 43.3, "deterioration": 46.3, "discount": 18.1, "payment": 48.4, "engagement": 16.2, "collection": 85.8}, {"id": "CUST-0273", "company": "Company_273", "segment": "SMB", "region": "LATAM", "industry": "Financial Services", "acv": 4218, "score": 40.0, "tier": "Medium", "at_risk": 1687, "churn": 31.6, "deterioration": 54.8, "discount": 13.1, "payment": 56.6, "engagement": 11.0, "collection": 76.7}, {"id": "CUST-0364", "company": "Company_364", "segment": "SMB", "region": "Europe", "industry": "Education", "acv": 8753, "score": 39.9, "tier": "Medium", "at_risk": 3492, "churn": 70.0, "deterioration": 48.4, "discount": 25.6, "payment": 6.8, "engagement": 19.1, "collection": 96.6}, {"id": "CUST-0399", "company": "Company_399", "segment": "SMB", "region": "APAC", "industry": "Manufacturing", "acv": 9461, "score": 39.3, "tier": "Medium", "at_risk": 3718, "churn": 35.8, "deterioration": 50.1, "discount": 17.5, "payment": 50.2, "engagement": 8.5, "collection": 79.9}, {"id": "CUST-0028", "company": "Company_28", "segment": "SMB", "region": "APAC", "industry": "Financial Services", "acv": 10151, "score": 39.0, "tier": "Medium", "at_risk": 3959, "churn": 44.4, "deterioration": 44.1, "discount": 23.8, "payment": 39.4, "engagement": 63.5, "collection": 80.3}, {"id": "CUST-0203", "company": "Company_203", "segment": "Mid-Market", "region": "North America", "industry": "Manufacturing", "acv": 57932, "score": 39.0, "tier": "Medium", "at_risk": 22593, "churn": 21.7, "deterioration": 56.0, "discount": 6.9, "payment": 68.6, "engagement": 17.0, "collection": 75.7}, {"id": "CUST-0490", "company": "Company_490", "segment": "SMB", "region": "North America", "industry": "Technology", "acv": 10535, "score": 38.9, "tier": "Medium", "at_risk": 4098, "churn": 48.5, "deterioration": 51.8, "discount": 23.1, "payment": 27.2, "engagement": 14.1, "collection": 91.4}, {"id": "CUST-0145", "company": "Company_145", "segment": "Mid-Market", "region": "Europe", "industry": "Manufacturing", "acv": 26029, "score": 38.7, "tier": "Medium", "at_risk": 10073, "churn": 58.6, "deterioration": 46.2, "discount": 16.2, "payment": 25.2, "engagement": 15.7, "collection": 87.4}, {"id": "CUST-0144", "company": "Company_144", "segment": "Mid-Market", "region": "North America", "industry": "Media", "acv": 49971, "score": 38.4, "tier": "Medium", "at_risk": 19189, "churn": 81.7, "deterioration": 0.0, "discount": 17.6, "payment": 41.4, "engagement": 3.8, "collection": 79.3}, {"id": "CUST-0286", "company": "Company_286", "segment": "Enterprise", "region": "Europe", "industry": "Education", "acv": 97359, "score": 38.4, "tier": "Medium", "at_risk": 37386, "churn": 0.0, "deterioration": 59.9, "discount": 7.5, "payment": 87.8, "engagement": 68.5, "collection": 71.1}, {"id": "CUST-0020", "company": "Company_20", "segment": "Mid-Market", "region": "APAC", "industry": "Retail", "acv": 34222, "score": 38.4, "tier": "Medium", "at_risk": 13141, "churn": 51.1, "deterioration": 54.6, "discount": 16.2, "payment": 24.8, "engagement": 12.7, "collection": 92.6}, {"id": "CUST-0177", "company": "Company_177", "segment": "SMB", "region": "North America", "industry": "Media", "acv": 7297, "score": 38.1, "tier": "Medium", "at_risk": 2780, "churn": 36.8, "deterioration": 45.4, "discount": 21.2, "payment": 45.8, "engagement": 11.8, "collection": 82.1}, {"id": "CUST-0260", "company": "Company_260", "segment": "Enterprise", "region": "Europe", "industry": "Financial Services", "acv": 159108, "score": 38.0, "tier": "Medium", "at_risk": 60461, "churn": 0.0, "deterioration": 63.3, "discount": 15.6, "payment": 76.4, "engagement": 60.2, "collection": 76.8}, {"id": "CUST-0216", "company": "Company_216", "segment": "Mid-Market", "region": "North America", "industry": "Technology", "acv": 31548, "score": 38.0, "tier": "Medium", "at_risk": 11988, "churn": 41.3, "deterioration": 47.1, "discount": 9.4, "payment": 48.0, "engagement": 5.2, "collection": 86.0}, {"id": "CUST-0105", "company": "Company_105", "segment": "SMB", "region": "North America", "industry": "Education", "acv": 10007, "score": 38.0, "tier": "Medium", "at_risk": 3803, "churn": 0.0, "deterioration": 66.2, "discount": 16.2, "payment": 72.8, "engagement": 76.3, "collection": 78.6}, {"id": "CUST-0386", "company": "Company_386", "segment": "SMB", "region": "North America", "industry": "Manufacturing", "acv": 14981, "score": 37.8, "tier": "Medium", "at_risk": 5663, "churn": 23.9, "deterioration": 52.9, "discount": 10.6, "payment": 61.0, "engagement": 15.7, "collection": 79.5}, {"id": "CUST-0407", "company": "Company_407", "segment": "Mid-Market", "region": "North America", "industry": "Healthcare", "acv": 24229, "score": 37.8, "tier": "Medium", "at_risk": 9159, "churn": 71.8, "deterioration": 50.4, "discount": 18.1, "payment": 0.0, "engagement": 14.5, "collection": 100.0}, {"id": "CUST-0391", "company": "Company_391", "segment": "SMB", "region": "APAC", "industry": "Healthcare", "acv": 8208, "score": 37.8, "tier": "Medium", "at_risk": 3103, "churn": 15.6, "deterioration": 50.7, "discount": 16.9, "payment": 68.2, "engagement": 20.7, "collection": 75.9}, {"id": "CUST-0037", "company": "Company_37", "segment": "Mid-Market", "region": "Europe", "industry": "Professional Services", "acv": 34893, "score": 37.7, "tier": "Medium", "at_risk": 13155, "churn": 26.1, "deterioration": 53.6, "discount": 16.2, "payment": 53.0, "engagement": 16.4, "collection": 78.5}, {"id": "CUST-0485", "company": "Company_485", "segment": "SMB", "region": "Europe", "industry": "Media", "acv": 9160, "score": 37.7, "tier": "Medium", "at_risk": 3453, "churn": 40.9, "deterioration": 54.7, "discount": 16.2, "payment": 34.0, "engagement": 7.5, "collection": 88.0}, {"id": "CUST-0323", "company": "Company_323", "segment": "SMB", "region": "North America", "industry": "Retail", "acv": 6177, "score": 37.6, "tier": "Medium", "at_risk": 2323, "churn": 40.4, "deterioration": 58.0, "discount": 21.2, "payment": 27.0, "engagement": 5.8, "collection": 86.5}, {"id": "CUST-0196", "company": "Company_196", "segment": "Mid-Market", "region": "North America", "industry": "Retail", "acv": 69172, "score": 37.6, "tier": "Medium", "at_risk": 26009, "churn": 29.7, "deterioration": 46.9, "discount": 15.0, "payment": 55.8, "engagement": 12.2, "collection": 87.1}, {"id": "CUST-0285", "company": "Company_285", "segment": "SMB", "region": "North America", "industry": "Media", "acv": 7380, "score": 36.9, "tier": "Medium", "at_risk": 2723, "churn": 33.9, "deterioration": 51.0, "discount": 18.8, "payment": 40.8, "engagement": 12.7, "collection": 84.6}, {"id": "CUST-0355", "company": "Company_355", "segment": "Enterprise", "region": "LATAM", "industry": "Healthcare", "acv": 90972, "score": 36.9, "tier": "Medium", "at_risk": 33569, "churn": 49.4, "deterioration": 46.9, "discount": 18.1, "payment": 26.8, "engagement": 11.0, "collection": 86.6}, {"id": "CUST-0366", "company": "Company_366", "segment": "Mid-Market", "region": "Europe", "industry": "Education", "acv": 43786, "score": 36.8, "tier": "Medium", "at_risk": 16113, "churn": 48.8, "deterioration": 48.5, "discount": 24.4, "payment": 20.8, "engagement": 12.9, "collection": 94.6}, {"id": "CUST-0119", "company": "Company_119", "segment": "SMB", "region": "APAC", "industry": "Retail", "acv": 8812, "score": 36.7, "tier": "Medium", "at_risk": 3234, "churn": 46.1, "deterioration": 48.7, "discount": 10.0, "payment": 34.6, "engagement": 13.1, "collection": 87.7}, {"id": "CUST-0427", "company": "Company_427", "segment": "Mid-Market", "region": "APAC", "industry": "Media", "acv": 29028, "score": 36.6, "tier": "Medium", "at_risk": 10624, "churn": 34.9, "deterioration": 50.0, "discount": 16.2, "payment": 41.6, "engagement": 9.0, "collection": 84.2}, {"id": "CUST-0496", "company": "Company_496", "segment": "Mid-Market", "region": "Europe", "industry": "Retail", "acv": 22417, "score": 36.3, "tier": "Medium", "at_risk": 8137, "churn": 60.8, "deterioration": 51.4, "discount": 19.4, "payment": 5.4, "engagement": 17.8, "collection": 97.3}, {"id": "CUST-0375", "company": "Company_375", "segment": "Enterprise", "region": "Europe", "industry": "Financial Services", "acv": 107146, "score": 36.3, "tier": "Medium", "at_risk": 38894, "churn": 49.8, "deterioration": 52.4, "discount": 11.9, "payment": 23.6, "engagement": 12.1, "collection": 88.2}, {"id": "CUST-0122", "company": "Company_122", "segment": "SMB", "region": "North America", "industry": "Financial Services", "acv": 7905, "score": 36.2, "tier": "Medium", "at_risk": 2862, "churn": 35.6, "deterioration": 50.9, "discount": 13.1, "payment": 40.6, "engagement": 8.7, "collection": 84.7}, {"id": "CUST-0074", "company": "Company_74", "segment": "SMB", "region": "North America", "industry": "Financial Services", "acv": 8465, "score": 36.2, "tier": "Medium", "at_risk": 3064, "churn": 17.4, "deterioration": 58.8, "discount": 8.8, "payment": 58.0, "engagement": 19.5, "collection": 76.0}, {"id": "CUST-0165", "company": "Company_165", "segment": "Enterprise", "region": "Europe", "industry": "Retail", "acv": 105914, "score": 36.1, "tier": "Medium", "at_risk": 38235, "churn": 41.0, "deterioration": 46.9, "discount": 15.6, "payment": 35.8, "engagement": 13.1, "collection": 87.1}, {"id": "CUST-0269", "company": "Company_269", "segment": "Mid-Market", "region": "LATAM", "industry": "Retail", "acv": 46464, "score": 36.1, "tier": "Medium", "at_risk": 16774, "churn": 40.4, "deterioration": 41.1, "discount": 33.8, "payment": 27.6, "engagement": 13.8, "collection": 91.2}, {"id": "CUST-0047", "company": "Company_47", "segment": "Mid-Market", "region": "LATAM", "industry": "Financial Services", "acv": 38197, "score": 35.8, "tier": "Medium", "at_risk": 13675, "churn": 0.0, "deterioration": 56.9, "discount": 12.5, "payment": 76.2, "engagement": 66.5, "collection": 76.9}, {"id": "CUST-0072", "company": "Company_72", "segment": "Mid-Market", "region": "North America", "industry": "Healthcare", "acv": 20527, "score": 35.8, "tier": "Medium", "at_risk": 7349, "churn": 25.2, "deterioration": 52.4, "discount": 7.5, "payment": 54.6, "engagement": 19.2, "collection": 87.7}, {"id": "CUST-0055", "company": "Company_55", "segment": "SMB", "region": "Europe", "industry": "Technology", "acv": 3857, "score": 35.7, "tier": "Medium", "at_risk": 1377, "churn": 51.0, "deterioration": 41.0, "discount": 22.5, "payment": 22.6, "engagement": 18.7, "collection": 93.7}, {"id": "CUST-0190", "company": "Company_190", "segment": "Mid-Market", "region": "Europe", "industry": "Professional Services", "acv": 23616, "score": 35.6, "tier": "Medium", "at_risk": 8407, "churn": 0.0, "deterioration": 51.8, "discount": 27.5, "payment": 68.6, "engagement": 52.1, "collection": 80.7}, {"id": "CUST-0497", "company": "Company_497", "segment": "SMB", "region": "North America", "industry": "Professional Services", "acv": 10955, "score": 35.0, "tier": "Medium", "at_risk": 3834, "churn": 38.3, "deterioration": 54.4, "discount": 8.8, "payment": 32.8, "engagement": 7.0, "collection": 88.6}, {"id": "CUST-0118", "company": "Company_118", "segment": "Mid-Market", "region": "North America", "industry": "Retail", "acv": 38298, "score": 35.0, "tier": "Medium", "at_risk": 13404, "churn": 21.9, "deterioration": 10.2, "discount": 24.4, "payment": 84.2, "engagement": 61.6, "collection": 72.9}, {"id": "CUST-0168", "company": "Company_168", "segment": "Mid-Market", "region": "LATAM", "industry": "Education", "acv": 32413, "score": 34.9, "tier": "Medium", "at_risk": 11312, "churn": 21.9, "deterioration": 56.9, "discount": 3.8, "payment": 53.4, "engagement": 16.8, "collection": 83.3}, {"id": "CUST-0463", "company": "Company_463", "segment": "SMB", "region": "North America", "industry": "Retail", "acv": 10968, "score": 34.8, "tier": "Medium", "at_risk": 3817, "churn": 24.8, "deterioration": 52.1, "discount": 11.9, "payment": 48.0, "engagement": 15.1, "collection": 86.0}, {"id": "CUST-0437", "company": "Company_437", "segment": "Enterprise", "region": "Europe", "industry": "Education", "acv": 56388, "score": 34.8, "tier": "Medium", "at_risk": 19623, "churn": 24.0, "deterioration": 57.1, "discount": 20.6, "payment": 37.0, "engagement": 15.6, "collection": 86.5}, {"id": "CUST-0390", "company": "Company_390", "segment": "SMB", "region": "Europe", "industry": "Technology", "acv": 7492, "score": 34.7, "tier": "Medium", "at_risk": 2600, "churn": 61.9, "deterioration": 54.1, "discount": 9.4, "payment": 3.0, "engagement": 15.8, "collection": 98.5}, {"id": "CUST-0031", "company": "Company_31", "segment": "SMB", "region": "Europe", "industry": "Media", "acv": 10591, "score": 34.7, "tier": "Medium", "at_risk": 3675, "churn": 27.9, "deterioration": 50.4, "discount": 10.0, "payment": 46.8, "engagement": 19.2, "collection": 81.6}, {"id": "CUST-0320", "company": "Company_320", "segment": "Mid-Market", "region": "North America", "industry": "Financial Services", "acv": 34571, "score": 34.6, "tier": "Medium", "at_risk": 11962, "churn": 0.0, "deterioration": 72.5, "discount": 12.5, "payment": 55.8, "engagement": 0, "collection": 77.1}, {"id": "CUST-0143", "company": "Company_143", "segment": "Mid-Market", "region": "APAC", "industry": "Professional Services", "acv": 39856, "score": 34.1, "tier": "Medium", "at_risk": 13591, "churn": 0.0, "deterioration": 65.8, "discount": 13.1, "payment": 60.0, "engagement": 65.4, "collection": 80.0}, {"id": "CUST-0469", "company": "Company_469", "segment": "Mid-Market", "region": "Europe", "industry": "Manufacturing", "acv": 41751, "score": 34.0, "tier": "Medium", "at_risk": 14195, "churn": 0.0, "deterioration": 59.1, "discount": 9.4, "payment": 69.2, "engagement": 68.2, "collection": 75.4}, {"id": "CUST-0029", "company": "Company_29", "segment": "SMB", "region": "APAC", "industry": "Retail", "acv": 9177, "score": 33.8, "tier": "Medium", "at_risk": 3102, "churn": 0.0, "deterioration": 72.0, "discount": 26.2, "payment": 42.4, "engagement": 0, "collection": 83.8}, {"id": "CUST-0318", "company": "Company_318", "segment": "Mid-Market", "region": "North America", "industry": "Professional Services", "acv": 29743, "score": 33.8, "tier": "Medium", "at_risk": 10053, "churn": 0.0, "deterioration": 55.3, "discount": 8.8, "payment": 73.0, "engagement": 60.4, "collection": 73.5}, {"id": "CUST-0426", "company": "Company_426", "segment": "SMB", "region": "Europe", "industry": "Education", "acv": 7952, "score": 33.8, "tier": "Medium", "at_risk": 2688, "churn": 0.0, "deterioration": 56.8, "discount": 16.9, "payment": 64.8, "engagement": 67.0, "collection": 72.6}, {"id": "CUST-0200", "company": "Company_200", "segment": "SMB", "region": "Europe", "industry": "Retail", "acv": 5293, "score": 33.8, "tier": "Medium", "at_risk": 1789, "churn": 28.0, "deterioration": 50.1, "discount": 14.4, "payment": 39.8, "engagement": 13.2, "collection": 85.1}, {"id": "CUST-0123", "company": "Company_123", "segment": "Mid-Market", "region": "Europe", "industry": "Financial Services", "acv": 26133, "score": 33.6, "tier": "Medium", "at_risk": 8781, "churn": 17.7, "deterioration": 50.5, "discount": 22.5, "payment": 44.8, "engagement": 19.4, "collection": 77.6}, {"id": "CUST-0414", "company": "Company_414", "segment": "SMB", "region": "APAC", "industry": "Professional Services", "acv": 7740, "score": 33.5, "tier": "Medium", "at_risk": 2593, "churn": 44.7, "deterioration": 52.0, "discount": 15.0, "payment": 16.2, "engagement": 11.3, "collection": 91.9}], "filters": {"segments": ["Enterprise", "Mid-Market", "SMB"], "regions": ["APAC", "Europe", "LATAM", "North America"], "tiers": ["Critical", "High", "Medium", "Low"]}, "meta": {"generated_at": "2026-03-27 02:43", "period_start": "2024-01", "period_end": "2025-12", "total_months": 24}};
+
+// ── Utility Functions ──────────────────────────────────────────────────
+function fmt$(v) {
+    if (Math.abs(v) >= 1e6) return '$' + (v/1e6).toFixed(1) + 'M';
+    if (Math.abs(v) >= 1e3) return '$' + (v/1e3).toFixed(0) + 'K';
+    return '$' + v.toLocaleString();
+}
+
+function fmtN(v) {
+    return v.toLocaleString();
+}
+
+const tierClass = t => 'badge-' + t.toLowerCase();
+const tierOrder = {'Critical':0, 'High':1, 'Medium':2, 'Low':3};
+
+// ── Theme + Chart Palette ─────────────────────────────────────────────
+let COLORS = {};
+let chartDefaults = {};
+
+function setThemePalette() {
+    const isDark = (document.documentElement.getAttribute('data-theme') || 'light') === 'dark';
+    COLORS = isDark ? {
+        blue: '#60A5FA', blueFaded: 'rgba(96,165,250,0.16)',
+        red: '#F87171', redFaded: 'rgba(248,113,113,0.18)',
+        green: '#34D399', greenFaded: 'rgba(52,211,153,0.18)',
+        amber: '#FBBF24', amberFaded: 'rgba(251,191,36,0.18)',
+        purple: '#A78BFA', purpleFaded: 'rgba(167,139,250,0.18)',
+        teal: '#22D3EE', tealFaded: 'rgba(34,211,238,0.18)',
+        text: '#94A3B8',
+        grid: 'rgba(51,65,85,0.52)',
+        doughnutBorder: '#1E293B'
+    } : {
+        blue: '#2F79CF', blueFaded: 'rgba(47,121,207,0.16)',
+        red: '#CB3A2D', redFaded: 'rgba(203,58,45,0.17)',
+        green: '#178A59', greenFaded: 'rgba(23,138,89,0.17)',
+        amber: '#C37B1F', amberFaded: 'rgba(195,123,31,0.17)',
+        purple: '#7658CC', purpleFaded: 'rgba(118,88,204,0.17)',
+        teal: '#178E9F', tealFaded: 'rgba(23,142,159,0.17)',
+        text: '#5F6F84',
+        grid: 'rgba(186,197,214,0.6)',
+        doughnutBorder: '#FFFFFF'
+    };
+
+    chartDefaults = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                labels: { color: COLORS.text, font: { size: 11 }, padding: 16, usePointStyle: true, pointStyleWidth: 10 }
+            }
+        },
+        scales: {
+            x: { ticks: { color: COLORS.text, font: { size: 10 } }, grid: { color: COLORS.grid } },
+            y: { ticks: { color: COLORS.text, font: { size: 10 } }, grid: { color: COLORS.grid } }
+        }
+    };
+}
+
+function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    const btn = document.getElementById('themeToggle');
+    if (btn) btn.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
+    setThemePalette();
+}
+
+function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme') || 'light';
+    const next = current === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('execDashboardTheme', next);
+    applyTheme(next);
+    applyFilters();
+    renderRevenueTrend();
+    renderDrivers();
+    renderSegTrend();
+    renderSegSummary();
+}
+
+function initTheme() {
+    const saved = localStorage.getItem('execDashboardTheme');
+    if (saved === 'light' || saved === 'dark') {
+        applyTheme(saved);
+        return;
+    }
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(prefersDark ? 'dark' : 'light');
+}
+
+// ── Chart Instances (global for redraws) ───────────────────────────────
+let chartRevenue, chartDrivers, chartTiers, chartSegTrend, chartSegSummary;
+
+// ── Initialize KPIs ────────────────────────────────────────────────────
+function renderKPIs(filtered) {
+    const k = D.kpis;
+    document.getElementById('kpiLeakage').textContent = fmt$(k.total_leakage);
+    document.getElementById('kpiLeakageSub').textContent = k.leakage_rate + '% of contracted revenue';
+    const trendDir = k.leakage_trend > 0 ? 'negative' : 'positive';
+    const trendArrow = k.leakage_trend > 0 ? '\u2191' : '\u2193';
+    document.getElementById('kpiLeakageTrend').className = 'kpi-trend ' + trendDir;
+    document.getElementById('kpiLeakageTrend').textContent = trendArrow + ' ' + Math.abs(k.leakage_trend).toFixed(1) + 'pp vs prior period';
+
+    // At Risk — may be filtered
+    const accts = filtered || D.accounts;
+    const totalRisk = accts.reduce((s, a) => s + a.at_risk, 0);
+    const totalACV = accts.reduce((s, a) => s + a.acv, 0);
+    document.getElementById('kpiAtRisk').textContent = fmt$(totalRisk);
+    document.getElementById('kpiAtRiskSub').textContent = (totalACV > 0 ? (totalRisk/totalACV*100).toFixed(1) : '0') + '% of portfolio ARR';
+
+    const highCount = accts.filter(a => a.tier === 'High' || a.tier === 'Critical').length;
+    document.getElementById('kpiHighRisk').textContent = highCount;
+    document.getElementById('kpiHighRiskSub').textContent = 'of ' + accts.length + ' accounts shown require intervention';
+
+    document.getElementById('kpiCollection').textContent = k.avg_collection + '%';
+    const collTrend = document.getElementById('kpiCollTrend');
+    const collDir = k.coll_trend < 0 ? 'negative' : 'positive';
+    const collArrow = k.coll_trend < 0 ? '\u2193' : '\u2191';
+    collTrend.className = 'kpi-trend ' + collDir;
+    collTrend.textContent = collArrow + ' ' + Math.abs(k.coll_trend).toFixed(1) + 'pp vs prior period';
+}
+
+// ── Revenue Trend Chart ────────────────────────────────────────────────
+function renderRevenueTrend() {
+    const ctx = document.getElementById('chartRevenue').getContext('2d');
+    if (chartRevenue) chartRevenue.destroy();
+
+    const labels = D.monthly_trend.map(d => d.month);
+    chartRevenue = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: 'Contracted',
+                    data: D.monthly_trend.map(d => d.contracted),
+                    borderColor: COLORS.blue,
+                    backgroundColor: COLORS.blueFaded,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 2,
+                    borderWidth: 2,
+                },
+                {
+                    label: 'Collected',
+                    data: D.monthly_trend.map(d => d.collected),
+                    borderColor: COLORS.green,
+                    backgroundColor: COLORS.greenFaded,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 2,
+                    borderWidth: 2,
+                },
+                {
+                    label: 'Leakage Gap',
+                    data: D.monthly_trend.map(d => d.leakage),
+                    borderColor: COLORS.red,
+                    backgroundColor: 'transparent',
+                    borderDash: [5, 3],
+                    tension: 0.3,
+                    pointRadius: 0,
+                    borderWidth: 1.5,
+                    yAxisID: 'y1',
+                },
+            ]
+        },
+        options: {
+            ...chartDefaults,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                ...chartDefaults.plugins,
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ctx.dataset.label + ': ' + fmt$(ctx.raw)
+                    }
+                }
+            },
+            scales: {
+                x: { ...chartDefaults.scales.x },
+                y: {
+                    ...chartDefaults.scales.y,
+                    ticks: { ...chartDefaults.scales.y.ticks, callback: v => fmt$(v) },
+                    position: 'left',
+                },
+                y1: {
+                    ...chartDefaults.scales.y,
+                    ticks: { ...chartDefaults.scales.y.ticks, callback: v => fmt$(v) },
+                    position: 'right',
+                    grid: { drawOnChartArea: false },
+                }
+            }
+        }
+    });
+}
+
+// ── Risk Drivers Chart ─────────────────────────────────────────────────
+function renderDrivers() {
+    const ctx = document.getElementById('chartDrivers').getContext('2d');
+    if (chartDrivers) chartDrivers.destroy();
+
+    const drivers = D.risk_drivers;
+    chartDrivers = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: drivers.map(d => d.segment),
+            datasets: [
+                { label: 'Churn',         data: drivers.map(d => d.churn),         backgroundColor: COLORS.red,    borderRadius: 4 },
+                { label: 'Deterioration',  data: drivers.map(d => d.deterioration), backgroundColor: COLORS.amber,  borderRadius: 4 },
+                { label: 'Discount',       data: drivers.map(d => d.discount),      backgroundColor: COLORS.purple, borderRadius: 4 },
+                { label: 'Payment',        data: drivers.map(d => d.payment),       backgroundColor: COLORS.teal,   borderRadius: 4 },
+            ]
+        },
+        options: {
+            ...chartDefaults,
+            indexAxis: 'y',
+            plugins: { ...chartDefaults.plugins },
+            scales: {
+                x: { ...chartDefaults.scales.x, title: { display: true, text: 'Avg Risk Score', color: COLORS.text, font: { size: 10 } } },
+                y: { ...chartDefaults.scales.y },
+            }
+        }
+    });
+}
+
+// ── Tier Distribution Chart ────────────────────────────────────────────
+function renderTiers(filtered) {
+    const ctx = document.getElementById('chartTiers').getContext('2d');
+    if (chartTiers) chartTiers.destroy();
+
+    // Recompute from filtered accounts
+    const accts = filtered || D.accounts;
+    const tierMap = {};
+    accts.forEach(a => {
+        if (!tierMap[a.tier]) tierMap[a.tier] = { count: 0, risk: 0 };
+        tierMap[a.tier].count++;
+        tierMap[a.tier].risk += a.at_risk;
+    });
+
+    const tiers = ['Critical', 'High', 'Medium', 'Low'].filter(t => tierMap[t]);
+    const tierColors = { Critical: COLORS.red, High: COLORS.amber, Medium: COLORS.blue, Low: COLORS.green };
+
+    chartTiers = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: tiers,
+            datasets: [{
+                data: tiers.map(t => tierMap[t]?.risk || 0),
+                backgroundColor: tiers.map(t => tierColors[t]),
+                borderColor: COLORS.doughnutBorder,
+                borderWidth: 3,
+                hoverOffset: 8,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '55%',
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: { color: COLORS.text, font: { size: 11 }, padding: 12, usePointStyle: true }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => {
+                            const tier = tiers[ctx.dataIndex];
+                            const info = tierMap[tier];
+                            return tier + ': ' + fmt$(info.risk) + ' (' + info.count + ' accounts)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// ── Segment Leakage Trend ──────────────────────────────────────────────
+function renderSegTrend() {
+    const ctx = document.getElementById('chartSegTrend').getContext('2d');
+    if (chartSegTrend) chartSegTrend.destroy();
+
+    const segColors = { Enterprise: COLORS.blue, 'Mid-Market': COLORS.purple, SMB: COLORS.teal };
+    const segFaded = { Enterprise: COLORS.blueFaded, 'Mid-Market': COLORS.purpleFaded, SMB: COLORS.tealFaded };
+    const st = D.segment_leakage_trend;
+    const segs = Object.keys(st);
+
+    chartSegTrend = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: st[segs[0]].months,
+            datasets: segs.map(s => ({
+                label: s,
+                data: st[s].gaps,
+                borderColor: segColors[s] || COLORS.blue,
+                backgroundColor: segFaded[s] || COLORS.blueFaded,
+                fill: true,
+                tension: 0.3,
+                pointRadius: 2,
+                borderWidth: 2,
+            }))
+        },
+        options: {
+            ...chartDefaults,
+            interaction: { mode: 'index', intersect: false },
+            scales: {
+                x: { ...chartDefaults.scales.x },
+                y: { ...chartDefaults.scales.y, stacked: true,
+                      ticks: { ...chartDefaults.scales.y.ticks, callback: v => fmt$(v) } },
+            }
+        }
+    });
+}
+
+// ── Segment Summary Chart ──────────────────────────────────────────────
+function renderSegSummary() {
+    const ctx = document.getElementById('chartSegSummary').getContext('2d');
+    if (chartSegSummary) chartSegSummary.destroy();
+
+    const ss = D.segment_summary;
+    const segColors = { Enterprise: COLORS.blue, 'Mid-Market': COLORS.purple, SMB: COLORS.teal };
+    const segFaded = { Enterprise: COLORS.blueFaded, 'Mid-Market': COLORS.purpleFaded, SMB: COLORS.tealFaded };
+
+    chartSegSummary = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ss.map(s => s.segment),
+            datasets: [
+                {
+                    label: 'Portfolio ARR',
+                    data: ss.map(s => s.total_arr),
+                    backgroundColor: ss.map(s => segColors[s.segment] || COLORS.blue),
+                    borderRadius: 4,
+                },
+                {
+                    label: 'Revenue at Risk',
+                    data: ss.map(s => s.total_risk),
+                    backgroundColor: ss.map(s => segFaded[s.segment] || COLORS.blueFaded),
+                    borderColor: ss.map(s => segColors[s.segment] || COLORS.blue),
+                    borderWidth: 2,
+                    borderRadius: 4,
+                    borderDash: [3, 3],
+                }
+            ]
+        },
+        options: {
+            ...chartDefaults,
+            plugins: {
+                ...chartDefaults.plugins,
+                tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmt$(ctx.raw) } }
+            },
+            scales: {
+                x: { ...chartDefaults.scales.x },
+                y: { ...chartDefaults.scales.y,
+                      ticks: { ...chartDefaults.scales.y.ticks, callback: v => fmt$(v) } }
+            }
+        }
+    });
+}
+
+// ── Table Rendering ────────────────────────────────────────────────────
+let sortCol = 'score';
+let sortDir = -1;  // -1 = desc
+
+function renderTable(filtered) {
+    const accts = filtered || D.accounts;
+
+    // Sort
+    const sorted = [...accts].sort((a, b) => {
+        let va = a[sortCol], vb = b[sortCol];
+        if (typeof va === 'string') return sortDir * va.localeCompare(vb);
+        return sortDir * (va - vb);
+    });
+
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = sorted.map(a => `
+        <tr>
+            <td><strong>${a.id}</strong></td>
+            <td>${a.segment}</td>
+            <td>${a.region}</td>
+            <td>${fmt$(a.acv)}</td>
+            <td>
+                <span class="risk-bar" style="width:${Math.min(a.score, 100) * 0.6}px;background:${
+                    a.score >= 40 ? COLORS.red : a.score >= 25 ? COLORS.amber : COLORS.blue
+                }"></span>
+                ${a.score}
+            </td>
+            <td><span class="badge ${tierClass(a.tier)}">${a.tier}</span></td>
+            <td>${fmt$(a.at_risk)}</td>
+            <td>${a.churn}</td>
+            <td>${a.deterioration}</td>
+            <td>${a.discount}</td>
+            <td>${a.payment}</td>
+            <td>${a.engagement}</td>
+            <td>${a.collection}%</td>
+        </tr>
+    `).join('');
+
+    document.getElementById('tableInfo').textContent = `Showing ${sorted.length} of ${D.accounts.length} accounts`;
+
+    // Update header sort indicators
+    document.querySelectorAll('thead th').forEach(th => {
+        th.classList.toggle('sorted', th.dataset.col === sortCol);
+        const arrow = th.querySelector('.sort-arrow');
+        if (arrow) arrow.innerHTML = th.dataset.col === sortCol ? (sortDir === 1 ? '&#9650;' : '&#9660;') : '&#9650;';
+    });
+}
+
+// ── Column sort click handler ──────────────────────────────────────────
+document.querySelectorAll('thead th').forEach(th => {
+    th.addEventListener('click', () => {
+        const col = th.dataset.col;
+        if (!col) return;
+        if (sortCol === col) sortDir *= -1;
+        else { sortCol = col; sortDir = th.dataset.type === 'num' ? -1 : 1; }
+        applyFilters();
+    });
+});
+
+// ── Filter Logic ───────────────────────────────────────────────────────
+function getFiltered() {
+    const seg  = document.getElementById('fSegment').value;
+    const reg  = document.getElementById('fRegion').value;
+    const tier = document.getElementById('fTier').value;
+
+    return D.accounts.filter(a =>
+        (!seg  || a.segment === seg) &&
+        (!reg  || a.region  === reg) &&
+        (!tier || a.tier    === tier)
+    );
+}
+
+function applyFilters() {
+    const filtered = getFiltered();
+    renderKPIs(filtered);
+    renderTiers(filtered);
+    renderTable(filtered);
+}
+
+function resetFilters() {
+    document.getElementById('fSegment').value = '';
+    document.getElementById('fRegion').value = '';
+    document.getElementById('fTier').value = '';
+    applyFilters();
+}
+
+// ── Init ───────────────────────────────────────────────────────────────
+initTheme();
+renderKPIs();
+renderRevenueTrend();
+renderDrivers();
+renderTiers();
+renderSegTrend();
+renderSegSummary();
+renderTable();
+</script>
+</body>
+</html>
