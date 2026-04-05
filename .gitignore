@@ -43,6 +43,10 @@ data/processed/**
 # Generated outputs (keep folders only)
 outputs/**
 !outputs/.gitkeep
+!outputs/charts/.gitkeep
+!outputs/charts/analysis/.gitkeep
+!outputs/charts/publication/.gitkeep
+!outputs/reports/.gitkeep
 
 # Dashboards: keep only executive version
 dashboard/*.html

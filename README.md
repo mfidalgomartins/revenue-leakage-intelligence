@@ -43,7 +43,7 @@ Top 20 accounts (4% of customer base) represent 25% of all revenue at risk — t
 │   ├── charts/                # 7 publication-quality visualizations
 │   └── reports/               # Validation report, metrics, profiles
 ├── dashboard/
-│   └── index.html             # Executive dashboard (open in browser)
+│   └── executive_dashboard.html  # Executive dashboard (open in browser)
 └── docs/
     └── methodology.md         # Full methodology documentation
 ```
@@ -85,12 +85,12 @@ python scripts/explore_data.py
 python -m pytest tests/
 
 # Open dashboard
-open dashboard/index.html
+open dashboard/executive_dashboard.html
 ```
 
 ## Outputs
 
-- **Executive Dashboard** (`dashboard/index.html`): Self-contained HTML with KPI cards, 7 charts, interactive filters, and a sortable risk scorecard table. Can be shared via email or Slack.
+- **Executive Dashboard** (`dashboard/executive_dashboard.html`): Self-contained HTML with KPI cards, interactive charts, filters, and a sortable risk scorecard table. Can be shared via email or Slack.
 - **Risk Scorecard** (`data/processed/risk_scorecard.csv`): Customer-level composite risk scores with dimensional breakdown.
 - **Business Analysis Report** (`outputs/reports/revenue_leakage_analysis.txt`): Formal 9-section analysis with question decomposition, leakage driver ranking, segment analysis, trend analysis, customer prioritization, and executive summary.
 - **Data Exploration Report** (`outputs/reports/data_exploration_report.txt`): Formal profiling of all 8 tables — grain, PKs, column classification, nulls, cardinality, distributions, outliers, cross-field consistency, and quality issue register.
