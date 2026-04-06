@@ -33,7 +33,8 @@ Top 20 accounts (4% of customer base) represent 25% of all revenue at risk — t
 ├── scripts/
 │   ├── run_pipeline.py        # End-to-end orchestrator
 │   ├── explore_data.py        # Formal data exploration (8 tables, 10 checks each)
-│   └── run_analysis.py        # Formal business analysis (9 sections, 12 validations)
+│   ├── run_analysis.py        # Formal business analysis (9 sections, 12 validations)
+│   └── update_dashboard_charts.py  # Utility to refresh dashboard with publication charts
 ├── notebooks/
 │   └── analysis.ipynb         # Exploratory analysis notebook
 ├── data/
