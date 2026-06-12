@@ -1,139 +1,109 @@
-# Revenue Leakage Intelligence System
+# Revenue Leakage Intelligence
 
-A production-grade analytics system that detects hidden revenue leakage across four dimensions: silent churn, gradual customer deterioration, discount anomalies, and payment failures. Built to demonstrate senior-level analytical methodology, data validation, and stakeholder-ready outputs.
+Python analytics pipeline that quantifies B2B SaaS revenue leakage from discounting, collection failures, account deterioration, and silent churn signals.
 
-## Key Findings
+[**Open the live executive dashboard**](https://mfidalgomartins.github.io/revenue-leakage-intelligence/) · [Methodology](docs/methodology.md)
 
-**The company is losing $6.0M (18.2%) of contracted revenue** through collection failures ($4.5M) and discounting ($1.5M).
+[![CI](https://github.com/mfidalgomartins/revenue-leakage-intelligence/actions/workflows/ci.yml/badge.svg)](https://github.com/mfidalgomartins/revenue-leakage-intelligence/actions/workflows/ci.yml)
 
-| Metric | Value |
-|--------|-------|
-| Total ARR | $19.2M |
-| 24-month contracted revenue | $33.1M |
-| Total leakage | $6.0M (18.2% of contracted) |
-| Revenue at risk (scored) | $4.2M (21.7% of ARR) |
-| Collection rate | 85.7% |
-| #1 leakage driver | Payment failures (44% of risk score) |
-| Critical + High risk customers | 1 + 47 |
-| Top 10% revenue concentration | 42.4% |
-| Engagement trend | Declining (66.7 → 52.0) |
+![Executive dashboard preview](docs/dashboard-preview.png)
 
-Top 20 accounts (4% of customer base) represent 25% of all revenue at risk — targeted intervention on these accounts is the highest-leverage action.
+## Decision Output
 
-## Architecture
+The reproducible synthetic scenario contains 500 B2B SaaS customers and 24 monthly periods from January 2024 to December 2025.
 
-```
-├── src/
-│   ├── data_generator.py      # Synthetic B2B SaaS data with embedded leakage patterns
-│   ├── data_profiler.py       # Formal data profiling (types, nulls, distributions)
-│   ├── leakage_analyzer.py    # Core analysis: churn, deterioration, discounts, payments
-│   ├── visualizations.py      # 7 professional charts with insight-driven titles
-│   ├── dashboard_builder.py   # Self-contained HTML dashboard with KPIs + filters
-│   └── validators.py          # 19 automated validation checks
-├── scripts/
-│   ├── run_pipeline.py        # End-to-end orchestrator
-│   ├── explore_data.py        # Formal data exploration (8 tables, 10 checks each)
-│   ├── run_analysis.py        # Formal business analysis (9 sections, 12 validations)
-│   └── update_dashboard_charts.py  # Utility to refresh dashboard with publication charts
-├── notebooks/
-│   └── analysis.ipynb         # Exploratory analysis notebook
-├── data/
-│   ├── raw/                   # Generated source data (3 tables)
-│   └── processed/             # Analytical tables (5 tables)
-├── outputs/
-│   ├── charts/                # 7 publication-quality visualizations
-│   └── reports/               # Validation report, metrics, profiles
-├── dashboard/
-│   └── executive_dashboard.html  # Executive dashboard (open in browser)
-└── docs/
-    └── methodology.md         # Full methodology documentation
-```
+| Metric | Result |
+|---|---:|
+| Annual recurring revenue | $19.2M |
+| Contracted revenue, 24 months | $33.1M |
+| Total revenue leakage | $6.0M (18.2% of contracted revenue) |
+| Collection failures | $4.5M |
+| Discount leakage | $1.5M |
+| Revenue at risk | $4.2M (21.7% of ARR) |
+| Critical and high-risk accounts | 48 |
+| Top 10% customer concentration | 43.9% of revenue |
 
-## Analysis Dimensions
+Payment failures contribute 44% of the weighted risk score. The top 20 accounts represent approximately 25% of revenue at risk, making account-level intervention more valuable than a broad retention campaign.
 
-### 1. Silent Churn Detection (30% weight)
-Identifies customers with declining engagement who haven't formally churned. Uses rolling engagement trends and absolute thresholds to flag pre-churn signals before revenue impact materializes.
+## What It Does
 
-### 2. Gradual Deterioration (25% weight)
-Detects sustained MRR decline using first-half vs second-half comparison and 3-month rolling trends. Separates genuine deterioration from seasonal variation.
+- Generates deterministic synthetic customer, billing, collection, engagement, and product-usage data.
+- Reconciles contracted, billed, and collected revenue.
+- Scores silent churn, deterioration, discount, and payment risk at customer level.
+- Produces a prioritized account scorecard, seven analytical charts, validation reports, and an interactive executive dashboard.
+- Runs 19 automated data-quality and analytical-integrity checks.
 
-### 3. Discount Anomaly Detection (20% weight)
-Flags excessive discounting at both customer and sales rep level. Quantifies the revenue impact of discount patterns and identifies reps who systematically give above-average discounts.
+## Run Locally
 
-### 4. Payment Anomalies (25% weight)
-Tracks the gap between billed and collected revenue. Identifies customers with recurring failed payments, partial payments, and declining collection rates.
-
-## Quick Start
+Requires Python 3.10 or newer.
 
 ```bash
-# Create virtual environment
+git clone https://github.com/mfidalgomartins/revenue-leakage-intelligence.git
+cd revenue-leakage-intelligence
+
 python3 -m venv .venv
 source .venv/bin/activate
-
-# Install dependencies
+python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 
-# Run full pipeline (data generation + profiling + analysis + charts + dashboard)
 python scripts/run_pipeline.py
-
-# Run formal business analysis
-python scripts/run_analysis.py
-
-# Run data exploration
-python scripts/explore_data.py
-
-# Run automated tests
-python -m pytest tests/
-
-# Open dashboard
-open dashboard/executive_dashboard.html
+python -m pytest -q
 ```
 
-## Outputs
+Open `dashboard/executive_dashboard.html` after the pipeline completes:
 
-- **Executive Dashboard** (`dashboard/executive_dashboard.html`): Self-contained HTML with KPI cards, interactive charts, filters, and a sortable risk scorecard table. Can be shared via email or Slack.
-- **Risk Scorecard** (`data/processed/risk_scorecard.csv`): Customer-level composite risk scores with dimensional breakdown.
-- **Business Analysis Report** (`outputs/reports/revenue_leakage_analysis.txt`): Formal 9-section analysis with question decomposition, leakage driver ranking, segment analysis, trend analysis, customer prioritization, and executive summary.
-- **Data Exploration Report** (`outputs/reports/data_exploration_report.txt`): Formal profiling of all 8 tables — grain, PKs, column classification, nulls, cardinality, distributions, outliers, cross-field consistency, and quality issue register.
-- **Validation Report** (`outputs/reports/validation_report.txt`): 19 automated checks — all passing.
-- **Charts** (`outputs/charts/`): 7 publication-quality visualizations with insight-driven titles.
+```bash
+open dashboard/executive_dashboard.html  # macOS
+```
 
-## Data Exploration
+Generated source data, processed tables, charts, and reports are intentionally ignored by Git. The tracked dashboard is the public demonstration artifact.
 
-A formal exploration pass profiles all 8 project tables across 10 dimensions:
+## Analytical Design
 
-| Check | Result |
-|-------|--------|
-| Primary key uniqueness | ✅ All 8 tables unique on declared PK |
-| Null completeness | ✅ 6/8 tables zero nulls; 2 scorecard cols have structural nulls (14.6%) |
-| Temporal coverage | ✅ 24/24 months present, no gaps |
-| Cross-field consistency | ✅ collected ≤ billed, composite = weighted sum |
-| Issues found | 0 CRITICAL, 13 WARNING, 11 INFO |
+| Risk dimension | Weight | Signal |
+|---|---:|---|
+| Silent churn | 30% | Recent engagement slope and low absolute engagement |
+| Gradual deterioration | 25% | First-half versus second-half MRR and smoothed trend |
+| Discount anomalies | 20% | Discount frequency, magnitude, and rep-level impact |
+| Payment anomalies | 25% | Collection rate, failed payments, and partial payments |
 
-Run it: `python scripts/explore_data.py`
+The composite score prioritizes investigation; it is not a causal estimate or a calibrated probability of churn. See [docs/methodology.md](docs/methodology.md) for formulas, validation rules, and limitations.
 
-## Validation
+## Repository Structure
 
-19 automated checks verify data quality and analytical integrity:
-- Row counts, null checks, reconciliation (collected ≤ billed)
-- Score bounds (0-100), weighted-sum verification
-- Join safety, partial-period detection, date coverage
+```text
+dashboard/
+  executive_dashboard.html    # Tracked public dashboard
+docs/
+  methodology.md              # Analytical definitions and limitations
+notebooks/
+  analysis.ipynb              # Reproducible exploratory workflow
+scripts/
+  run_pipeline.py             # End-to-end generation, analysis, and validation
+  explore_data.py             # Detailed data-quality exploration
+  run_analysis.py             # Decision-oriented analytical report
+  redesign_dashboard.py       # Shared publication dashboard template
+src/
+  build_executive_dashboard.py
+  data_generator.py
+  data_profiler.py
+  leakage_analyzer.py
+  runtime.py
+  validators.py
+  visualizations.py
+tests/
+  test_data_generator.py
+  test_leakage_analyzer.py
+```
 
-All 19 checks PASS.
+## Scope And Limitations
 
-## Methodology
+- Data is synthetic and contains deliberately embedded leakage patterns.
+- Risk weights are judgment-based and require calibration before operational use.
+- Scores indicate prioritization signals, not causation or forecast probabilities.
+- The model excludes external market, support, contract, and CRM signals.
+- The dashboard loads Chart.js and Geist fonts from jsDelivr, so interactive rendering requires internet access.
 
-See [docs/methodology.md](docs/methodology.md) for complete documentation of data architecture, scoring methodology, and limitations.
+## License
 
-## Tech Stack
-
-- **Python 3** (pandas, numpy, scikit-learn, matplotlib, seaborn)
-- **HTML/CSS/JS** (self-contained dashboard)
-
-## Limitations
-
-1. Uses synthetic data — patterns are realistic but generated
-2. Risk weights are judgement-based, not empirically calibrated
-3. Scores indicate risk correlation, not causation
-4. Point-in-time analysis without predictive modeling
-5. No external market signals incorporated
+Released under the [MIT License](LICENSE).

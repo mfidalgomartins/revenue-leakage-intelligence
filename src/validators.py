@@ -3,7 +3,6 @@ Validation Module
 Pre-delivery quality checks: reconciliation, logic, completeness.
 """
 import pandas as pd
-import numpy as np
 
 
 def run_all_validations(customers, revenue, scorecard, summary_metrics):

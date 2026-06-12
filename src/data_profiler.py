@@ -3,7 +3,6 @@ Data Profiling Module
 Formal data profiling workflow: types, nulls, distributions, coverage, anomalies.
 """
 import pandas as pd
-import numpy as np
 from datetime import datetime
 
 

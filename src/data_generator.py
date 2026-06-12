@@ -13,6 +13,9 @@ np.random.seed(SEED)
 
 def generate_customers(n=500):
     """Generate customer master table with realistic B2B attributes."""
+    if not isinstance(n, int) or n < 1:
+        raise ValueError("n deve ser um inteiro positivo.")
+
     segments = np.random.choice(
         ["Enterprise", "Mid-Market", "SMB"],
         size=n,
@@ -68,6 +71,9 @@ def generate_monthly_revenue(customers_df, months=24):
     - Silent churn (activity drops before formal churn)
     - Payment delays and failures
     """
+    if not isinstance(months, int) or months < 1:
+        raise ValueError("months deve ser um inteiro positivo.")
+
     records = []
     base_date = datetime(2024, 1, 1)
 
@@ -84,7 +90,8 @@ def generate_monthly_revenue(customers_df, months=24):
             p=[0.45, 0.25, 0.15, 0.15],
         )
 
-        churn_month = np.random.randint(12, months) if churned else None
+        churn_start = max(1, months // 2)
+        churn_month = np.random.randint(churn_start, months) if churned and months > 1 else None
 
         for m in range(months):
             month_date = base_date + pd.DateOffset(months=m)
@@ -136,7 +143,7 @@ def generate_monthly_revenue(customers_df, months=24):
 
             # Usage / engagement proxy (0-100)
             if pattern == "gradual_decline":
-                engagement = max(5, 80 - 3 * m + np.random.normal(0, 8))
+                engagement = min(100, max(5, 80 - 3 * m + np.random.normal(0, 8)))
             elif churned and churn_month and m >= churn_month - 3:
                 engagement = max(0, 30 - 10 * (m - churn_month + 3) + np.random.normal(0, 5))
             else:

@@ -13,7 +13,6 @@ from src.runtime import configure_runtime
 configure_runtime(project_root)
 
 import pandas as pd
-import numpy as np
 
 pd.set_option("display.max_columns", 50)
 pd.set_option("display.width", 140)
@@ -154,11 +153,11 @@ for tname, df in tables.items():
             out(f"  Duplicate PK rows: {dup_count} / {total:,} ({dup_count/total*100:.2f}%)")
             if dup_count > 0:
                 add_issue(tname, "CRITICAL", f"{dup_count} duplicate rows on primary key {pk_present}")
-                out(f"  Sample duplicates:")
+                out("  Sample duplicates:")
                 dups = df[df.duplicated(subset=pk_present, keep=False)]
                 out(dups.head(5).to_string())
             else:
-                out(f"  ✅ Primary key is unique — no duplicates.")
+                out("  ✅ Primary key is unique — no duplicates.")
         else:
             add_issue(tname, "WARNING", f"PK columns {pk_cols} not found in table")
     out(f"  Full-row duplicates: {df.duplicated().sum()}")
@@ -566,7 +565,7 @@ for tname, p in table_profiles.items():
 with open(profile_path, "w") as f:
     json.dump(profile_out, f, indent=2)
 
-out(f"\n\nReports saved:")
+out("\n\nReports saved:")
 out(f"  {report_path}")
 out(f"  {issues_path}")
 out(f"  {profile_path}")

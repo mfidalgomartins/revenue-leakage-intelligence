@@ -6,7 +6,7 @@ Business question:
   What is driving revenue leakage, where is revenue at risk,
   and which customers or segments should the business prioritize first?
 """
-import sys, os, json, textwrap
+import sys, os
 from datetime import datetime
 
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -220,7 +220,7 @@ drivers = [
 ]
 drivers.sort(key=lambda x: x[1], reverse=True)
 
-out(f"\n  Weighted risk contribution to composite score:")
+out("\n  Weighted risk contribution to composite score:")
 out(f"  {'Driver':25s}  {'Weighted Pts':>12s}  {'% of Total':>10s}")
 out(f"  {'─'*50}")
 for name, pts, pct in drivers:
@@ -286,7 +286,7 @@ for _, r in seg.sort_values("total_at_risk", ascending=False).iterrows():
         f"{r['pct_of_risk']:>6.1f}%  {r['risk_intensity']:>8.2f}x  "
         f"{r['avg_risk_score']:>8.1f}{flag}")
 
-out(f"""
+out("""
   Key finding: Risk Intensity measures whether a segment carries more risk than
   its share of ARR would predict. Intensity > 1.0× means disproportionate risk.
 """)

@@ -13,7 +13,6 @@ sys.path.insert(0, project_root)
 from src.runtime import configure_runtime
 configure_runtime(project_root)
 
-import pandas as pd
 from src.data_generator import save_data
 from src.data_profiler import profile_dataframe, print_profile, check_suspicious_values
 from src.leakage_analyzer import (
@@ -26,7 +25,7 @@ from src.leakage_analyzer import (
     compute_summary_metrics,
 )
 from src.visualizations import generate_all_charts
-from src.dashboard_builder import build_dashboard
+from src.build_executive_dashboard import main as build_executive_dashboard
 from src.validators import run_all_validations, format_validation_report
 
 
@@ -34,7 +33,7 @@ def main():
     data_dir = os.path.join(project_root, "data")
     output_dir = os.path.join(project_root, "outputs")
     charts_dir = os.path.join(output_dir, "charts")
-    dashboard_path = os.path.join(project_root, "dashboard", "index.html")
+    dashboard_path = os.path.join(project_root, "dashboard", "executive_dashboard.html")
 
     # =========================================================================
     # STEP 1: Generate Synthetic Data
@@ -129,7 +128,7 @@ def main():
     scorecard = build_leakage_scorecard(
         churn_results, deterioration_results, cust_discounts, cust_payments, customers
     )
-    print(f"  Risk distribution:")
+    print("  Risk distribution:")
     print(scorecard["risk_tier"].value_counts().to_string())
 
     # Summary metrics
@@ -164,7 +163,7 @@ def main():
     print("\n" + "=" * 70)
     print("STEP 5: BUILDING EXECUTIVE DASHBOARD")
     print("=" * 70)
-    build_dashboard(scorecard, summary, concentration, charts_dir, dashboard_path)
+    build_executive_dashboard()
 
     # =========================================================================
     # STEP 6: Validation
@@ -186,13 +185,13 @@ def main():
     print("\n" + "=" * 70)
     print("PIPELINE COMPLETE")
     print("=" * 70)
-    print(f"\nFiles generated:")
+    print("\nFiles generated:")
     print(f"  Data:       {data_dir}/raw/ (3 files)")
     print(f"  Processed:  {data_dir}/processed/ (5 files)")
     print(f"  Charts:     {charts_dir}/ (7 charts)")
     print(f"  Dashboard:  {dashboard_path}")
     print(f"  Reports:    {output_dir}/reports/ (3 files)")
-    print(f"\nKey Findings:")
+    print("\nKey Findings:")
     print(f"  • ${summary['total_revenue_at_risk']:,.0f} revenue at risk ({summary['pct_revenue_at_risk']:.1f}% of ARR)")
     print(f"  • {summary['critical_risk_customers']} critical + {summary['high_risk_customers']} high risk customers")
     print(f"  • Collection rate: {summary['overall_collection_rate']:.1f}%")

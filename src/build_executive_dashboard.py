@@ -1,14 +1,14 @@
 """
 Revenue Leakage Intelligence System — Executive Dashboard Builder
 ==================================================================
-Generates a self-contained, offline-capable HTML dashboard with:
+Generates the tracked public HTML dashboard with:
   - KPI cards with trend indicators
   - Interactive Chart.js visualizations
   - Segment/Region/Tier filters that update all sections
   - High-risk accounts detail table with sorting
   - Responsive design for executive presentation
 
-Uses embedded JSON data and Chart.js CDN (with inline fallback note).
+Uses embedded JSON data and the shared publication template.
 """
 
 import json
@@ -31,8 +31,6 @@ def load_and_prepare():
     customers = pd.read_csv(RAW / "customers.csv", parse_dates=["onboard_date"])
     monthly   = pd.read_csv(RAW / "monthly_revenue.csv", parse_dates=["month"])
     risk      = pd.read_csv(PROC / "risk_scorecard.csv")
-    payments  = pd.read_csv(PROC / "payment_analysis.csv")
-    rep_disc  = pd.read_csv(PROC / "rep_discount_impact.csv")
 
     data = {}
 
@@ -45,7 +43,7 @@ def load_and_prepare():
     total_arr        = customers["annual_contract_value"].sum()
     total_at_risk    = risk["revenue_at_risk"].sum()
     at_risk_pct      = total_at_risk / total_arr * 100
-    avg_collection   = payments["collection_rate"].mean()
+    avg_collection   = total_collected / total_billed * 100
     high_risk_count  = len(risk[risk["risk_tier"].isin(["High", "Critical"])])
 
     # Trend: compare last 6 months vs first 6 months
@@ -1101,6 +1099,26 @@ renderTable();
     return html
 
 
+def _render_publication_dashboard(data):
+    """Render via the shared publication-ready template in scripts/redesign_dashboard.py.
+
+    Keeping a single source of truth for the design means re-running this builder
+    never reverts the dashboard to the legacy template. Falls back to the in-file
+    legacy ``build_html`` only if the template module cannot be loaded.
+    """
+    import importlib.util
+
+    template_path = ROOT / "scripts" / "redesign_dashboard.py"
+    try:
+        spec = importlib.util.spec_from_file_location("redesign_dashboard", template_path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module.render(data)
+    except Exception as exc:  # pragma: no cover - defensive fallback
+        print(f"   ! template module unavailable ({exc}); using legacy layout")
+        return build_html(data)
+
+
 def main():
     print("=" * 60)
     print("  EXECUTIVE DASHBOARD BUILDER")
@@ -1111,7 +1129,7 @@ def main():
     data = load_and_prepare()
 
     print("2. Building HTML dashboard...")
-    html = build_html(data)
+    html = _render_publication_dashboard(data)
 
     out_path = OUT / "executive_dashboard.html"
     with open(out_path, "w", encoding="utf-8") as f:
