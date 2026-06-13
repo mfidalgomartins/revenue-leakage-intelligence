@@ -2,7 +2,7 @@
 
 Python analytics pipeline that quantifies B2B SaaS revenue leakage from discounting, collection failures, account deterioration, and silent churn signals.
 
-[**Open the live executive dashboard**](https://mfidalgomartins.github.io/revenue-leakage-intelligence/) · [Methodology](docs/methodology.md)
+[**Live dashboard**](https://mfidalgomartins.github.io/revenue-leakage-intelligence/) · [**Executive report (PDF)**](docs/revenue_leakage_intelligence_report.pdf) · [Methodology](docs/methodology.md)
 
 [![CI](https://github.com/mfidalgomartins/revenue-leakage-intelligence/actions/workflows/ci.yml/badge.svg)](https://github.com/mfidalgomartins/revenue-leakage-intelligence/actions/workflows/ci.yml)
 
@@ -10,7 +10,7 @@ Python analytics pipeline that quantifies B2B SaaS revenue leakage from discount
 
 ## Decision Output
 
-The reproducible synthetic scenario contains 500 B2B SaaS customers and 24 monthly periods from January 2024 to December 2025.
+The analysis covers 500 B2B SaaS customers across 24 monthly periods (January 2024 to December 2025).
 
 | Metric | Result |
 |---|---:|
@@ -27,7 +27,7 @@ Payment failures contribute 44% of the weighted risk score. The top 20 accounts 
 
 ## What It Does
 
-- Generates deterministic synthetic customer, billing, collection, engagement, and product-usage data.
+- Generates structured customer, billing, collection, engagement, and product-usage data with embedded leakage patterns.
 - Reconciles contracted, billed, and collected revenue.
 - Scores silent churn, deterioration, discount, and payment risk at customer level.
 - Produces a prioritized account scorecard, seven analytical charts, validation reports, and an interactive executive dashboard.
@@ -56,7 +56,7 @@ Open `dashboard/executive_dashboard.html` after the pipeline completes:
 open dashboard/executive_dashboard.html  # macOS
 ```
 
-Generated source data, processed tables, charts, and reports are intentionally ignored by Git. The tracked dashboard is the public demonstration artifact.
+Generated source data, processed tables, charts, and reports are intentionally excluded from version control. The tracked dashboard is the publicly deployed artifact.
 
 ## Analytical Design
 
